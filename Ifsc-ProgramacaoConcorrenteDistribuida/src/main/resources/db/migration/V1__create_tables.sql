@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS produto (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome_produto VARCHAR(255) NOT NULL,
+    preco DECIMAL(38,2) NOT NULL,
+    descricao VARCHAR(255)
+);
+
+CREATE TABLE IF NOT EXISTS pedido (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome_cliente VARCHAR(255) NOT NULL,
+    descricao VARCHAR(255),
+    status VARCHAR(255) NOT NULL
+);

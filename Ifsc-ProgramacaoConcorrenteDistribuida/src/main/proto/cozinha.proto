@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.PCD.pcd.grpc";
+option java_outer_classname = "CozinhaProto";
+
+package cozinha;
+
+service CozinhaService {
+    rpc IniciarPedido   (CozinhaRequest) returns (CozinhaResponse);
+    rpc FinalizarPedido (CozinhaRequest) returns (CozinhaResponse);
+    rpc EntregarPedido  (CozinhaRequest) returns (CozinhaResponse);
+}
+
+message CozinhaRequest {
+    int64 pedidoId = 1;
+}
+
+message CozinhaResponse {
+    int64 pedidoId = 1;
+    string novoStatus = 2;
+    bool sucesso = 3;
+    string mensagem = 4;
+}
+
+//.\mvnw generate-sources
+
