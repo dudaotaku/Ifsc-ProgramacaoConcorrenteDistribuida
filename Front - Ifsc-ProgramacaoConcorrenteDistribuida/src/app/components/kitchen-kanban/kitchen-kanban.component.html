@@ -1,0 +1,80 @@
+<div class="kanban-wrapper">
+  <!-- Header Bar -->
+  <div class="kanban-header-bar">
+    <div>
+      <h2 class="title-main">Painel de Cozinha</h2>
+      <p class="subtitle">Monitore e gerencie os pedidos da cozinha em tempo real</p>
+    </div>
+    
+    <!-- Connection Status Indicator -->
+    <div class="connection-badge" [class.connected]="socketConnected()">
+      <span class="indicator-dot"></span>
+      <span class="indicator-text">
+        {{ socketConnected() ? 'Conectado (Real-time Ativo)' : 'Buscando Conexão...' }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Carregando pedidos ativos...</p>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage()" class="error-alert">
+    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+    </svg>
+    <span>{{ errorMessage() }}</span>
+  </div>
+
+  <!-- Kanban Board -->
+  <div *ngIf="!loading()" class="kanban-board">
+    <div *ngFor="let status of statusList" class="kanban-column" [class]="'col-' + status.toLowerCase()">
+      <div class="column-header">
+        <div class="header-left">
+          <span class="status-dot"></span>
+          <h3>{{ getColumnLabel(status) }}</h3>
+        </div>
+        <span class="counter-badge">{{ columns()[status]?.length || 0 }}</span>
+      </div>
+
+      <div class="cards-container">
+        <!-- Empty State in Column -->
+        <div *ngIf="columns()[status]?.length === 0" class="empty-column-state">
+          Nenhum pedido
+        </div>
+
+        <!-- Kanban Cards -->
+        <div *ngFor="let pedido of columns()[status]" class="kanban-card glass-panel" [class]="'card-' + status.toLowerCase()">
+          <div class="card-header">
+            <span class="order-id">#{{ pedido.id }}</span>
+            <span class="customer-name">{{ pedido.nomeCliente }}</span>
+          </div>
+
+          <div class="card-body">
+            <div class="products-label">Itens do Pedido:</div>
+            <p class="products-text">{{ pedido.descricao }}</p>
+          </div>
+
+          <div class="card-footer" *ngIf="status !== 'ENTREGUE'">
+            <button 
+              *ngIf="status !== 'RECEBIDO'"
+              class="btn-advance" 
+              (click)="advanceStatus(pedido)"
+            >
+              <span>{{ getAdvanceButtonText(status) }}</span>
+              <svg class="arrow-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>
+              </svg>
+            </button>
+            <span *ngIf="status === 'RECEBIDO'" class="waiting-worker-badge">
+              Processando fila...
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

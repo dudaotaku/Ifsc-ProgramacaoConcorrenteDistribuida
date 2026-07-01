@@ -1,0 +1,133 @@
+<div class="order-wrapper">
+  <!-- Header Bar -->
+  <div class="order-header-bar">
+    <h2 class="title-main">Fazer Pedido</h2>
+    <p class="subtitle">Selecione os itens e envie o pedido diretamente para a cozinha</p>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage()" class="success-alert">
+    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+    </svg>
+    <span>{{ successMessage() }}</span>
+  </div>
+
+  <div *ngIf="errorMessage()" class="error-alert">
+    <svg class="alert-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+    </svg>
+    <span>{{ errorMessage() }}</span>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loadingProdutos() && !seeding()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Carregando itens do cardápio...</p>
+  </div>
+
+  <!-- Content Grid -->
+  <div *ngIf="!loadingProdutos()" class="order-content-grid">
+    
+    <!-- Left Panel: Form & Cart Summary -->
+    <div class="form-panel glass-panel">
+      <h3 class="panel-title">Detalhes do Pedido</h3>
+      
+      <div class="form-group">
+        <label for="customerName" class="form-label">Nome do Cliente</label>
+        <input 
+          type="text" 
+          id="customerName" 
+          name="customerName"
+          [(ngModel)]="customerName" 
+          class="form-input" 
+          placeholder="Ex: Pedro Silva"
+          [disabled]="submitting()"
+          required
+        />
+      </div>
+
+      <div class="cart-summary">
+        <h4 class="summary-title">Itens Selecionados ({{ selectedProdutos().size }})</h4>
+        
+        <div class="cart-items-list">
+          <div *ngIf="selectedProdutos().size === 0" class="empty-cart-text">
+            Nenhum item selecionado. Toque nos itens do cardápio à direita para adicioná-los.
+          </div>
+          
+          <div *ngFor="let item of selectedProdutos()" class="cart-item">
+            <span class="cart-item-name">{{ item.nome_produto }}</span>
+            <span class="cart-item-price">{{ item.preco | currency:'BRL':'symbol':'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="cart-total-row">
+          <span class="total-label">Total do Pedido</span>
+          <span class="total-amount">{{ getSelectedTotal() | currency:'BRL':'symbol':'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <button 
+        type="button" 
+        class="btn-primary btn-submit-order" 
+        [disabled]="submitting() || !customerName || selectedProdutos().size === 0"
+        (click)="submitOrder()"
+      >
+        <span *ngIf="!submitting()">Enviar Pedido para Cozinha</span>
+        <span *ngIf="submitting()" class="submitting-spinner-wrapper">
+          <span class="mini-spinner"></span> Enviando...
+        </span>
+      </button>
+    </div>
+
+    <!-- Right Panel: Product Catalog -->
+    <div class="catalog-panel">
+      <h3 class="panel-title">Cardápio de Produtos</h3>
+      
+      <!-- Empty Catalog State -->
+      <div *ngIf="produtos().length === 0 && !seeding()" class="empty-catalog-card glass-panel">
+        <svg class="empty-food-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h4>Cardápio Inicial Vazio</h4>
+        <p>Parece que o banco de dados do cardápio de produtos está limpo. Deseja carregar alguns produtos de exemplo para testar o fluxo completo?</p>
+        <button class="btn-primary btn-seed" (click)="seedSampleProducts()">
+          Carregar Itens de Exemplo
+        </button>
+      </div>
+
+      <!-- Seeding State -->
+      <div *ngIf="seeding()" class="loading-state">
+        <div class="spinner"></div>
+        <p>Configurando banco de dados do cardápio...</p>
+      </div>
+
+      <!-- Catalog Grid List -->
+      <div *ngIf="produtos().length > 0 && !seeding()" class="catalog-grid">
+        <div 
+          *ngFor="let produto of produtos()" 
+          class="product-card glass-panel" 
+          [class.selected]="isProductSelected(produto)"
+          (click)="toggleProductSelection(produto)"
+        >
+          <!-- Selection Checkbox Dot -->
+          <div class="selection-checkbox" [class.checked]="isProductSelected(produto)">
+            <svg *ngIf="isProductSelected(produto)" class="check-icon" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+
+          <div class="product-info">
+            <h4 class="product-name">{{ produto.nome_produto }}</h4>
+            <p class="product-desc">{{ produto.descricao }}</p>
+          </div>
+          
+          <div class="product-price-badge">
+            {{ produto.preco | currency:'BRL':'symbol':'1.2-2' }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
